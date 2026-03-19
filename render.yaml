@@ -1,0 +1,46 @@
+databases:
+  - name: obsidian-news-db
+    databaseName: news_aggregator
+    user: newsagg
+    plan: free
+
+services:
+  # ── 1. FastAPI Backend ──────────────────────────────────────────────────────
+  - type: web
+    name: obsidian-news-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: obsidian-news-db
+          property: connectionString
+      - key: POSTGRES_USER
+        value: newsagg
+      - key: POSTGRES_DB
+        value: news_aggregator
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: obsidian-news-db
+          property: password
+      # Set these manually in Render dashboard after deploy:
+      - key: NEWSAPI_KEY
+        sync: false
+      - key: GNEWS_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # ── 2. Next.js Frontend ─────────────────────────────────────────────────────
+  - type: web
+    name: obsidian-news-frontend
+    env: docker
+    dockerfilePath: ./frontend/ai-news-aggregator/Dockerfile
+    dockerContext: ./frontend/ai-news-aggregator
+    plan: free
+    buildArgs:
+      # After deploying backend, replace this with your actual backend URL:
+      # e.g. https://obsidian-news-backend.onrender.com
+      NEXT_PUBLIC_API_URL: https://obsidian-news-backend.onrender.com
