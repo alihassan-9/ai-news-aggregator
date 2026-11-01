@@ -1,6 +1,6 @@
 # AI News Aggregator
 
-A news app that actually thinks. It pulls headlines from two sources, runs them through Google Gemini to generate summaries and figure out whether the tone is positive, neutral, or negative — then shows everything on a clean dashboard you can filter and search through.
+A news app that actually thinks. It pulls headlines from two sources, runs them through Google Gemini to generate summaries and figure out whether the tone is positive, neutral, or negative then shows everything on a clean dashboard you can filter and search through.
 
 Built with FastAPI, PostgreSQL, Next.js, and Docker. The whole stack runs with one command.
 
@@ -14,7 +14,7 @@ Built with FastAPI, PostgreSQL, Next.js, and Docker. The whole stack runs with o
 - Shows everything on a dashboard with live filters for sentiment, source, and keyword search
 - Comes with a full **REST API** and Swagger docs at `/docs`
 
-The sentiment analysis is an original feature — not in the base tutorial. It lets you see at a glance whether the day's news is mostly positive, negative, or neutral.
+The sentiment analysis is an original feature not in the base tutorial. It lets you see at a glance whether the day's news is mostly positive, negative, or neutral.
 
 ---
 
@@ -38,9 +38,9 @@ The sentiment analysis is an original feature — not in the base tutorial. It l
 
 - Docker and Docker Compose installed
 - Three free API keys:
-  - [NewsAPI](https://newsapi.org) — free tier, takes 1 minute to sign up
-  - [GNews](https://gnews.io) — same
-  - [Google Gemini](https://aistudio.google.com) — free, just sign in with Google
+  - [NewsAPI](https://newsapi.org) free tier, takes 1 minute to sign up
+  - [GNews](https://gnews.io) same
+  - [Google Gemini](https://aistudio.google.com) free, just sign in with Google
 
 ### Setup
 
@@ -61,7 +61,7 @@ NEWSAPI_KEY=your_key_here
 GNEWS_KEY=your_key_here
 GEMINI_API_KEY=your_key_here
 ```
-Leave the database values as they are — Docker handles those automatically.
+Leave the database values as they are Docker handles those automatically.
 
 **4. Start everything**
 ```bash
@@ -120,10 +120,10 @@ ai-news-aggregator/
 | `GET` | `/api/stats` | counts and sentiment breakdown |
 
 **Filter options for `/api/articles`:**
-- `sentiment` — `positive`, `neutral`, or `negative`
-- `source` — `newsapi` or `gnews`
-- `search` — keyword in title or description
-- `limit` / `offset` — pagination
+- `sentiment` `positive`, `neutral`, or `negative`
+- `source` `newsapi` or `gnews`
+- `search` keyword in title or description
+- `limit` / `offset` pagination
 
 **Manual refresh:**
 ```bash
@@ -151,6 +151,6 @@ The project includes a `render.yaml` for one-click deployment on [Render](https:
 
 ## Notes
 
-- Free API tiers have rate limits — the app batches requests to stay within them
+- Free API tiers have rate limits the app batches requests to stay within them
 - The Render free tier spins down after 15 minutes of inactivity, so the first load after a gap takes ~30 seconds
-- The `.env` file is gitignored — never commit real API keys
+- The `.env` file is gitignored never commit real API keys
