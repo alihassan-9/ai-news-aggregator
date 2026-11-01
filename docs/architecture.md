@@ -12,7 +12,7 @@ flowchart TD
     subgraph Backend["⚙️ FastAPI Backend"]
         ING["Ingestion Service"]
         DD["De-duplication Engine"]
-        AI["AI Processing\n(Google Gemini 2.0 Flash)"]
+        AI["AI Processing\n(Claude 3 Haiku + keyword fallback)"]
         API["REST API\n/api/articles\n/api/stats\n/api/ingest"]
     end
 
@@ -50,7 +50,7 @@ sequenceDiagram
     participant S as News Sources
     participant B as FastAPI Backend
     participant DB as PostgreSQL
-    participant AI as Google Gemini
+    participant AI as Anthropic API
     participant F as Next.js Dashboard
 
     Note over B: App Startup / Manual Trigger
@@ -91,7 +91,7 @@ graph LR
     subgraph External
         NEWSAPI["NewsAPI"]
         GNEWS["GNews"]
-        GEMINI["Google Gemini"]
+        GEMINI["Anthropic API"]
     end
 
     NX & RC & TW --> NGINX

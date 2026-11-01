@@ -1,156 +1,140 @@
+<div align="center">
+
 # AI News Aggregator
 
-A news app that actually thinks. It pulls headlines from two sources, runs them through Google Gemini to generate summaries and figure out whether the tone is positive, neutral, or negative — then shows everything on a clean dashboard you can filter and search through.
+**A full-stack news intelligence dashboard that ingests headlines from multiple providers, de-duplicates them, and enriches every article with an AI-generated summary and sentiment label.**
 
-Built with FastAPI, PostgreSQL, Next.js, and Docker. The whole stack runs with one command.
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?logo=postgresql&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
 
----
-
-## What it does
-
-- Fetches news from **NewsAPI** and **GNews** (two independent sources)
-- Stores articles in a **PostgreSQL** database, skipping duplicates automatically
-- Sends each article to **Google Gemini** to get a 2–3 sentence summary and a sentiment label
-- Shows everything on a dashboard with live filters for sentiment, source, and keyword search
-- Comes with a full **REST API** and Swagger docs at `/docs`
-
-The sentiment analysis is an original feature — not in the base tutorial. It lets you see at a glance whether the day's news is mostly positive, negative, or neutral.
+</div>
 
 ---
 
-## Tech stack
+## Overview
 
-| Layer | What's used |
-|---|---|
-| Backend | Python 3.11, FastAPI |
-| Database | PostgreSQL 15, SQLAlchemy 2.0 |
-| AI / LLM | Google Gemini 2.0 Flash |
-| Frontend | Next.js 16, React 19, Tailwind CSS 4 |
-| Server | Nginx (reverse proxy + static files) |
-| Deployment | Docker, Docker Compose |
-| News sources | NewsAPI, GNews |
+AI News Aggregator pulls the latest headlines from **NewsAPI** and **GNews**, stores them in **PostgreSQL** with automatic de-duplication, and runs each article through an LLM to produce a concise 2–3 sentence summary and a **positive / neutral / negative** sentiment label. Results are served through a documented REST API and visualised on a filterable Next.js dashboard. The entire stack starts with a single `docker compose up`.
 
----
+<p align="center">
+  <img src="docs/assets/architecture-diagram.png" alt="Architecture diagram" width="720" />
+</p>
 
-## Getting started
+## Key Features
 
-### You'll need
+- **Multi-source ingestion**: aggregates two independent news providers into one normalised schema
+- **Automatic de-duplication**: identical stories across providers are stored only once
+- **AI enrichment**: LLM summarisation and sentiment classification via the Anthropic API
+- **Graceful degradation**: falls back to a fast local keyword classifier when no API key is set or the API is unavailable
+- **Interactive dashboard**: filter by sentiment and source, full-text keyword search, at-a-glance statistics
+- **REST API with OpenAPI docs**: interactive Swagger UI at `/docs`
+- **One-command deployment**: Docker Compose locally, `render.yaml` blueprint for Render
 
-- Docker and Docker Compose installed
-- Three free API keys:
-  - [NewsAPI](https://newsapi.org) — free tier, takes 1 minute to sign up
-  - [GNews](https://gnews.io) — same
-  - [Google Gemini](https://aistudio.google.com) — free, just sign in with Google
+## Tech Stack
 
-### Setup
+| Layer          | Technology                                   |
+| -------------- | -------------------------------------------- |
+| Backend        | Python 3.11, FastAPI, SQLAlchemy 2.0         |
+| Database       | PostgreSQL 15                                |
+| AI             | Anthropic API (Claude 3 Haiku), keyword fallback |
+| Frontend       | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| Web server     | Nginx (static hosting and `/api` reverse proxy) |
+| Infrastructure | Docker, Docker Compose, Render               |
+| Data sources   | NewsAPI, GNews                               |
 
-**1. Clone the repo**
+## Getting Started
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
+- API keys for [NewsAPI](https://newsapi.org) and [GNews](https://gnews.io) (free tiers available)
+- *(Optional)* An [Anthropic API key](https://console.anthropic.com) for LLM summaries
+
+### Installation
+
 ```bash
-git clone <repository-url>
+git clone https://github.com/alihassan-9/ai-news-aggregator.git
 cd ai-news-aggregator
+cp .env.example .env        # then add your API keys
+docker compose up --build
 ```
 
-**2. Create your `.env` file**
-```bash
-cp .env.example .env
-```
+On first start the backend fetches articles and enriches them automatically.
 
-**3. Open `.env` and paste in your keys**
-```env
-NEWSAPI_KEY=your_key_here
-GNEWS_KEY=your_key_here
-GEMINI_API_KEY=your_key_here
-```
-Leave the database values as they are — Docker handles those automatically.
+| Service        | URL                          |
+| -------------- | ---------------------------- |
+| Dashboard      | http://localhost:8080        |
+| API (Swagger)  | http://localhost:8000/docs   |
 
-**4. Start everything**
-```bash
-docker-compose up --build
-```
+### Environment Variables
 
-That's it. On first run it fetches articles and processes them through Gemini automatically. Give it a minute, then open the dashboard.
+| Variable            | Required | Description                                             |
+| ------------------- | :------: | ------------------------------------------------------- |
+| `NEWSAPI_KEY`       | Yes      | NewsAPI key                                             |
+| `GNEWS_KEY`         | Yes      | GNews key                                               |
+| `ANTHROPIC_API_KEY` | No       | Enables LLM summaries; keyword sentiment is used without it |
+| `POSTGRES_*`, `DATABASE_URL` | Yes | Database settings (defaults work with Docker Compose) |
 
-**Dashboard:** http://localhost:8080
-**API docs:** http://localhost:8000/docs
+## API Reference
 
----
+| Method | Endpoint                    | Description                                   |
+| ------ | --------------------------- | --------------------------------------------- |
+| `GET`  | `/api/articles`             | List articles (filters below)                 |
+| `GET`  | `/api/articles/{id}`        | Retrieve a single article                     |
+| `GET`  | `/api/stats`                | Article counts and sentiment breakdown        |
+| `POST` | `/api/ingest`               | Trigger a fresh fetch and AI enrichment run   |
+| `POST` | `/api/reprocess-sentiment`  | Re-run sentiment classification               |
 
-## Project structure
+**Query parameters for `/api/articles`:** `sentiment` (`positive` · `neutral` · `negative`), `source` (`newsapi` · `gnews`), `search`, `limit`, `offset`.
+
+## Project Structure
 
 ```
 ai-news-aggregator/
+├── backend/                  # FastAPI service
+│   ├── app/
+│   │   ├── core/             # configuration & database session
+│   │   ├── models/           # SQLAlchemy models
+│   │   ├── routers/          # REST endpoints
+│   │   ├── services/         # ingestion, news providers, AI enrichment
+│   │   └── main.py           # application entry point
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/                 # Next.js dashboard (served by Nginx)
+│   ├── src/
+│   │   ├── app/              # pages & global styles
+│   │   ├── lib/              # API client
+│   │   └── types/            # shared TypeScript types
+│   ├── Dockerfile
+│   └── nginx.conf
+├── db/
+│   └── init.sql              # schema & indexes
+├── docs/
+│   ├── architecture.md       # system & data-flow diagrams (Mermaid)
+│   ├── project-report.docx
+│   └── assets/               # architecture diagram, demo video
 ├── docker-compose.yml
-├── .env.example
-│
-├── backend/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── app/
-│       ├── main.py              # startup, CORS, lifespan
-│       ├── core/config.py       # database connection
-│       ├── models/article.py    # SQLAlchemy model
-│       ├── routers/articles.py  # API endpoints
-│       └── services/
-│           ├── ai_service.py    # Gemini summarization + sentiment
-│           ├── ingestion.py     # orchestrates the fetch → store → AI pipeline
-│           └── news_sources.py  # NewsAPI and GNews fetchers
-│
-├── frontend/ai-news-aggregator/
-│   ├── Dockerfile
-│   ├── nginx.conf
-│   └── src/
-│       ├── app/page.tsx         # main dashboard
-│       ├── app/globals.css      # design system
-│       ├── lib/api.ts           # API calls
-│       └── types/index.ts       # TypeScript types
-│
-└── db/
-    └── init.sql                 # initial schema (tables + indexes)
+├── render.yaml               # Render deployment blueprint
+└── .env.example
 ```
 
----
+## Architecture
 
-## API endpoints
-
-| Method | Endpoint | What it does |
-|---|---|---|
-| `GET` | `/api/articles` | get articles, supports filters |
-| `GET` | `/api/articles/{id}` | single article detail |
-| `POST` | `/api/ingest` | manually trigger a fresh fetch + AI run |
-| `GET` | `/api/stats` | counts and sentiment breakdown |
-
-**Filter options for `/api/articles`:**
-- `sentiment` — `positive`, `neutral`, or `negative`
-- `source` — `newsapi` or `gnews`
-- `search` — keyword in title or description
-- `limit` / `offset` — pagination
-
-**Manual refresh:**
-```bash
-curl -X POST http://localhost:8000/api/ingest
-```
-Or just click the **Sync** button on the dashboard.
-
----
-
-## How the AI part works
-
-When articles come in, the backend sends each one to Gemini with a prompt like:
-
-> "Summarize this article in 2–3 sentences and classify its sentiment as positive, neutral, or negative. Return valid JSON."
-
-Gemini returns both the summary and the sentiment in one call. The result gets saved back to the database and shown on the card immediately. If Gemini wraps the JSON in markdown code blocks (it sometimes does), the backend strips that out before parsing.
-
----
+See [`docs/architecture.md`](docs/architecture.md) for the full system overview, request sequence diagram, and technology map. A short demo recording is available at [`docs/assets/demo.mp4`](docs/assets/demo.mp4).
 
 ## Deployment
 
-The project includes a `render.yaml` for one-click deployment on [Render](https://render.com) (free tier). See the deployment steps in the project report.
+The repository includes a [`render.yaml`](render.yaml) blueprint that provisions the database, backend, and frontend on [Render](https://render.com). After the first deploy, set `NEWSAPI_KEY`, `GNEWS_KEY`, and `ANTHROPIC_API_KEY` in the Render dashboard.
 
----
+> Free-tier services sleep after 15 minutes of inactivity, so the first request after idle can take ~30 seconds.
 
-## Notes
+## License
 
-- Free API tiers have rate limits — the app batches requests to stay within them
-- The Render free tier spins down after 15 minutes of inactivity, so the first load after a gap takes ~30 seconds
-- The `.env` file is gitignored — never commit real API keys
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
+
+## Author
+
+**Ali Hassan** · [LinkedIn](https://www.linkedin.com/in/ali-hassan-70bb9323b) · [GitHub](https://github.com/alihassan-9)

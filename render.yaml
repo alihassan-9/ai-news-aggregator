@@ -30,15 +30,15 @@ services:
         sync: false
       - key: GNEWS_KEY
         sync: false
-      - key: GEMINI_API_KEY
+      - key: ANTHROPIC_API_KEY
         sync: false
 
   # ── 2. Next.js Frontend ─────────────────────────────────────────────────────
   - type: web
     name: obsidian-news-frontend
     env: docker
-    dockerfilePath: ./frontend/ai-news-aggregator/Dockerfile
-    dockerContext: ./frontend/ai-news-aggregator
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
     plan: free
     buildArgs:
       # After deploying backend, replace this with your actual backend URL:
